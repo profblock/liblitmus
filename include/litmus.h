@@ -52,6 +52,14 @@ extern "C" {
  */
 void init_rt_task_param(struct rt_task* param);
 
+
+/**
+ * Initialise an adaptive real-time task param struct
+ * @param param Pointer to the struct to initialise
+ * @param service_levels number of service levels in adaptive task
+ */
+void init_adap_task_param(struct rt_task* tp, int service_levels);
+
 /**
  * Set real-time task parameters for given process
  * @param pid PID of process

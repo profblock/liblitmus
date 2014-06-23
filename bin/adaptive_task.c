@@ -65,9 +65,10 @@ int main(int argc, char** argv)
 {
 	int do_exit;
 	struct rt_task param;
+	//struct rt_service_level* testing;
 
 	/* Setup task parameters */
-	init_rt_task_param(&param);
+	init_adap_task_param(&param, 4);
 	param.exec_cost = ms2ns(EXEC_COST);
 	param.period = ms2ns(PERIOD);
 	param.relative_deadline = ms2ns(RELATIVE_DEADLINE);
@@ -81,6 +82,17 @@ int main(int argc, char** argv)
 	/* The priority parameter is only used by fixed-priority plugins. */
 	param.priority = LITMUS_LOWEST_PRIORITY;
 
+	/* Initialize Service levels array in user mode with 4 service levels*/
+//	param.service_levels = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+//	testing = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+	if(param.service_levels != 0){
+		printf("Allocated");
+	}
+	else {
+		printf("Failed");
+	}
+
+	
 	/* The task is in background mode upon startup. */
 
 

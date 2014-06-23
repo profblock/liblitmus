@@ -72,7 +72,7 @@ AR  := ${CROSS_COMPILE}${AR}
 # Targets
 
 all     = lib ${rt-apps}
-rt-apps = cycles base_task rt_launch rtspin release_ts measure_syscall \
+rt-apps = cycles adaptive_task base_task rt_launch rtspin release_ts measure_syscall \
 	  base_mt_task uncache runtests
 
 .PHONY: all lib clean dump-config TAGS tags cscope help doc
@@ -215,6 +215,8 @@ tests/runner.c: test_catalog.inc
 vpath %.c bin/
 
 obj-cycles = cycles.o
+
+obj-adaptive_task = adaptive_task.o
 
 obj-base_task = base_task.o
 
