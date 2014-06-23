@@ -26,7 +26,7 @@
  *
  * These are in milliseconds.
  */
-#define PERIOD            100
+#define PERIOD            500
 #define RELATIVE_DEADLINE 100
 #define EXEC_COST         10
 
@@ -160,7 +160,9 @@ int main(int argc, char** argv)
 int job(int count) 
 {
 	/* Do real-time calculation. */
-	printf("Hello\n");
+	struct control_page* myControlPage = get_ctrl_page();
+	unsigned int myServiceLevel = myControlPage->service_level;
+	printf("Service Level %u\n",myServiceLevel );
 	/* Don't exit. */
 	return 0;
 	/*
