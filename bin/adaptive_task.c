@@ -53,11 +53,6 @@ int test(){
 	int do_exit=0;
 	int i;
 	struct rt_task param;
-	struct rt_service_level oneLevel;
-	if(oneLevel.relative_work==0){
-		printf("Yay\n");
-	}
-	printf("Yay\n");
 	init_rt_task_param(&param);
 	param.exec_cost = ms2ns(EXEC_COST);
 	param.period = ms2ns(PERIOD);
@@ -169,17 +164,9 @@ int test(){
  
 int main(int argc, char** argv)
 {
+	int do_exit=0;
+	int i;
 	struct rt_task param;
-	struct rt_service_level* testing;
-	
-	printf("starting test\n");
-	test();
-	printf("test won\n");
-
-	//struct rt_service_level oneLevel;
-	
-
-	/* Setup task parameters */
 	init_rt_task_param(&param);
 	param.exec_cost = ms2ns(EXEC_COST);
 	param.period = ms2ns(PERIOD);
@@ -193,48 +180,77 @@ int main(int argc, char** argv)
 
 	/* The priority parameter is only used by fixed-priority plugins. */
 	param.priority = LITMUS_LOWEST_PRIORITY;
+	
+	param.service_levels = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+	param.service_levels[0].relative_work = 1;
+	param.service_levels[0].quality_of_service = 2.2;
+	param.service_levels[0].service_level_number = 0;
+	param.service_levels[0].service_level_period = ms2ns(PERIOD);
 
-	/* Initialize Service levels array in user mode with 4 service levels*/
-	//param.service_levels = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
-	testing = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
-	//param.service_levels = &oneLevel;
+	param.service_levels[1].relative_work = 2;
+	param.service_levels[1].quality_of_service = 3;
+	param.service_levels[1].service_level_number = 1;
+	param.service_levels[1].service_level_period = ms2ns(PERIOD);
+
+	param.service_levels[2].relative_work = 2.1;
+	param.service_levels[2].quality_of_service = 4;
+	param.service_levels[2].service_level_number = 2;
+	param.service_levels[2].service_level_period = ms2ns(PERIOD);
+
+	param.service_levels[3].relative_work = 3;
+	param.service_levels[3].quality_of_service = 5;
+	param.service_levels[3].service_level_number = 3;
+	param.service_levels[3].service_level_period = ms2ns(PERIOD);
+
 	
 
-	printf("Let's see");
-	if(testing){
-		printf("Allocated");
-	}
-	else {
-		printf("Failed");
-	}
-/*
-	set_service_level_param(&param, 0, 1, 2.2);
-	printf("allocated 0\n");
-	set_service_level_param(&param, 1, 2, 3);
-	printf("allocated 0\n");
-	set_service_level_param(&param, 0, 1, 2.2);
+	/*****
+	 * 3) Setup real-time parameters. 
+	 *    In this example, we create a sporadic task that does not specify a 
+	 *    target partition (and thus is intended to run under global scheduling). 
+	 *    If this were to execute under a partitioned scheduler, it would be assigned
+	 *    to the first partition (since partitioning is performed offline).
+	 */
+	CALL( init_litmus() );
 
-*/
-	/* The task is in background mode upon startup. */
+	/* To specify a partition, do
+	 *
+	 * param.cpu = CPU;
+	 * be_migrate_to(CPU);
+	 *
+	 * where CPU ranges from 0 to "Number of CPUs" - 1 before calling
+	 * set_rt_task_param().
+	 */
+
+	CALL( set_rt_task_param(gettid(), &param) );
 
 
 	/*****
-	 * 1) Command line paramter parsing would be done here.
+	 * 4) Transition to real-time mode.
+	 */
+	CALL( task_mode(LITMUS_RT_TASK) );
+
+	/* The task is now executing as a real-time task if the call didn't fail. 
 	 */
 
+	i=0;
+	/*****
+	 * 5) Invoke real-time jobs.
+	 */ 
+	do {
+		/* Wait until the next job is released. */
+		i++;
+		sleep_next_period();
+		/* Invoke job. */
+		do_exit = job(i);		
 
+	} while (!do_exit);
 
 	/*****
-	 * 2) Work environment (e.g., global data structures, file data, etc.) would
-	 *    be setup here.
+	 * 6) Transition to background mode.
 	 */
 
-
-
-
-	/***** 
-	 * 7) Clean up, maybe print results and stats, and exit.
-	 */
+	CALL( task_mode(BACKGROUND_TASK) );
 	return 0;
 }
 
