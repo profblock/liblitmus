@@ -106,27 +106,6 @@ void init_rt_task_param(struct rt_task* tp)
 	tp->release_policy = TASK_SPORADIC;
 }
 
-void init_adap_task_param(struct rt_task* tp, int service_levels)
-{
-	/* Creates an adaptive task with memory allocated for the service_leves 
-	 * user must fill in values for service levels within the program
-	 */
-	 init_rt_task_param(tp);
-	 tp->service_levels = memset(tp->service_levels, 0, sizeof(struct rt_service_level)*service_levels);
-}
-
-
-void set_service_level_param(struct rt_task* tp, int s_level, double r_work, double qos) 
-{
-	printf("1\n");
-	tp->service_levels[s_level].relative_work = r_work;
-	printf("2\n");
-	tp->service_levels[s_level].quality_of_service = qos;
-	printf("3\n");
-	tp->service_levels[s_level].service_level_number = s_level;
-	printf("4\n");
-}
-
 task_class_t str2class(const char* str)
 {
 	if      (!strcmp(str, "hrt"))
