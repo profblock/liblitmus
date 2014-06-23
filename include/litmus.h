@@ -69,6 +69,15 @@ void init_adap_task_param(struct rt_task* tp, int service_levels);
 int set_rt_task_param(pid_t pid, struct rt_task* param);
 
 /**
+ * Set the values for an adaptive task service level
+ * @param param Pointer to the struct to modify the service level
+ * @param s_level the service level to set up
+ * @param r_work the relative work of this service level
+ * @param qos the Quality Of Service from operating at this service level
+ */
+void set_service_level_param(struct rt_task* tp, int s_level, int r_work, double qos);
+
+/**
  * Get real-time task parameters for given process
  * @param pid PID of process
  * @param param Real-time task parameter struct to fill

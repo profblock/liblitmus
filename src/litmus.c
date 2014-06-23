@@ -116,6 +116,13 @@ void init_adap_task_param(struct rt_task* tp, int service_levels)
 }
 
 
+void set_service_level_param(struct rt_task* tp, int s_level, int r_work, double qos) 
+{
+	tp->service_levels[s_level].relative_work = r_work;
+	tp->service_levels[s_level].quality_of_service = qos;
+	tp->service_levels[s_level].service_level_number = s_level;
+}
+
 task_class_t str2class(const char* str)
 {
 	if      (!strcmp(str, "hrt"))
