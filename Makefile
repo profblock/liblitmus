@@ -73,7 +73,7 @@ AR  := ${CROSS_COMPILE}${AR}
 
 all     = lib ${rt-apps}
 rt-apps = cycles adaptive_task base_task rt_launch rtspin release_ts measure_syscall \
-	  base_mt_task uncache runtests
+	  base_mt_task adap_mt_task uncache runtests
 
 .PHONY: all lib clean dump-config TAGS tags cscope help doc
 
@@ -222,6 +222,11 @@ obj-base_task = base_task.o
 
 obj-base_mt_task = base_mt_task.o
 ldf-base_mt_task = -pthread
+
+
+obj-adap_mt_task = adap_mt_task.o
+ldf-adap_mt_task = -pthread
+
 
 obj-rt_launch = rt_launch.o common.o
 
