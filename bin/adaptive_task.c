@@ -48,6 +48,61 @@
  */
 int job(void);
 
+
+int test(){
+	//int do_exit;
+	struct rt_task param;
+	struct rt_service_level oneLevel;
+	if(oneLevel.relative_work==0){
+		printf("Yay\n");
+	}
+	printf("Yay\n");
+	init_rt_task_param(&param);
+	param.exec_cost = ms2ns(EXEC_COST);
+	param.period = ms2ns(PERIOD);
+	param.relative_deadline = ms2ns(RELATIVE_DEADLINE);
+
+	/* What to do in the case of budget overruns? */
+	param.budget_policy = NO_ENFORCEMENT;
+
+	/* The task class parameter is ignored by most plugins. */
+	param.cls = RT_CLASS_SOFT;
+
+	/* The priority parameter is only used by fixed-priority plugins. */
+	param.priority = LITMUS_LOWEST_PRIORITY;
+	
+	printf("Service Levels Beginning\n");
+	param.service_levels = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+	
+	
+	printf("Service Levels Ending\n");
+
+	/*****
+	 * 3) Setup real-time parameters. 
+	 *    In this example, we create a sporadic task that does not specify a 
+	 *    target partition (and thus is intended to run under global scheduling). 
+	 *    If this were to execute under a partitioned scheduler, it would be assigned
+	 *    to the first partition (since partitioning is performed offline).
+	 */
+	 printf("init Starting\n");
+	CALL( init_litmus() );
+	printf("Done init\n");
+
+	/* To specify a partition, do
+	 *
+	 * param.cpu = CPU;
+	 * be_migrate_to(CPU);
+	 *
+	 * where CPU ranges from 0 to "Number of CPUs" - 1 before calling
+	 * set_rt_task_param().
+	 */
+
+
+
+	CALL( task_mode(BACKGROUND_TASK) );
+	printf("done");
+	return 0;
+}
 /* typically, main() does a couple of things: 
  * 	1) parse command line parameters, etc.
  *	2) Setup work environment.
@@ -61,14 +116,21 @@ int job(void);
  * LITMUS^RT real-time task. In a real program, all the return values should be 
  * checked for errors.
  */
+ 
 int main(int argc, char** argv)
 {
-	int do_exit;
 	struct rt_task param;
-	//struct rt_service_level* testing;
+	struct rt_service_level* testing;
+	
+	printf("starting test\n");
+	test();
+	printf("test won\n");
+
+	//struct rt_service_level oneLevel;
+	
 
 	/* Setup task parameters */
-	init_adap_task_param(&param, 4);
+	init_rt_task_param(&param);
 	param.exec_cost = ms2ns(EXEC_COST);
 	param.period = ms2ns(PERIOD);
 	param.relative_deadline = ms2ns(RELATIVE_DEADLINE);
@@ -83,20 +145,25 @@ int main(int argc, char** argv)
 	param.priority = LITMUS_LOWEST_PRIORITY;
 
 	/* Initialize Service levels array in user mode with 4 service levels*/
-//	param.service_levels = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
-//	testing = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
-	if(param.service_levels != 0){
+	//param.service_levels = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+	testing = (struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+	//param.service_levels = &oneLevel;
+
+	printf("Let's see");
+	if(testing){
 		printf("Allocated");
 	}
 	else {
 		printf("Failed");
 	}
-
+/*
 	set_service_level_param(&param, 0, 1, 2.2);
+	printf("allocated 0\n");
 	set_service_level_param(&param, 1, 2, 3);
-	set_service_level_param(&param, 2, 2.1, 4);
-	set_service_level_param(&param, 3, 3, 5);
-	
+	printf("allocated 0\n");
+	set_service_level_param(&param, 0, 1, 2.2);
+
+*/
 	/* The task is in background mode upon startup. */
 
 
@@ -111,54 +178,6 @@ int main(int argc, char** argv)
 	 *    be setup here.
 	 */
 
-
-
-	/*****
-	 * 3) Setup real-time parameters. 
-	 *    In this example, we create a sporadic task that does not specify a 
-	 *    target partition (and thus is intended to run under global scheduling). 
-	 *    If this were to execute under a partitioned scheduler, it would be assigned
-	 *    to the first partition (since partitioning is performed offline).
-	 */
-	CALL( init_litmus() );
-
-	/* To specify a partition, do
-	 *
-	 * param.cpu = CPU;
-	 * be_migrate_to(CPU);
-	 *
-	 * where CPU ranges from 0 to "Number of CPUs" - 1 before calling
-	 * set_rt_task_param().
-	 */
-	CALL( set_rt_task_param(gettid(), &param) );
-
-
-	/*****
-	 * 4) Transition to real-time mode.
-	 */
-	CALL( task_mode(LITMUS_RT_TASK) );
-
-	/* The task is now executing as a real-time task if the call didn't fail. 
-	 */
-
-
-
-	/*****
-	 * 5) Invoke real-time jobs.
-	 */
-	do {
-		/* Wait until the next job is released. */
-		sleep_next_period();
-		/* Invoke job. */
-		do_exit = job();		
-	} while (!do_exit);
-
-
-	
-	/*****
-	 * 6) Transition to background mode.
-	 */
-	CALL( task_mode(BACKGROUND_TASK) );
 
 
 
