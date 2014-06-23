@@ -92,6 +92,10 @@ int main(int argc, char** argv)
 		printf("Failed");
 	}
 
+	set_service_level_param(&param, 0, 1, 2.2);
+	set_service_level_param(&param, 1, 2, 3);
+	set_service_level_param(&param, 2, 2.1, 4);
+	set_service_level_param(&param, 3, 3, 5);
 	
 	/* The task is in background mode upon startup. */
 

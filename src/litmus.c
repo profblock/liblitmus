@@ -116,7 +116,7 @@ void init_adap_task_param(struct rt_task* tp, int service_levels)
 }
 
 
-void set_service_level_param(struct rt_task* tp, int s_level, int r_work, double qos) 
+void set_service_level_param(struct rt_task* tp, int s_level, double r_work, double qos) 
 {
 	tp->service_levels[s_level].relative_work = r_work;
 	tp->service_levels[s_level].quality_of_service = qos;
