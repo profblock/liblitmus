@@ -29,7 +29,7 @@
 /* Let's create 10 threads in the example, 
  * for a total utilization of 1.
  */
-#define NUM_THREADS      10 
+#define NUM_THREADS      50 
 
 /* The information passed to each thread. Could be anything. */
 struct thread_context {
@@ -143,6 +143,29 @@ void* rt_thread(void *tcontext)
 
 	/* Make presence visible. */
 	printf("RT Thread %d active.\n", ctx->id);
+	
+	
+	
+	param.service_levels =(struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+	param.service_levels[0].relative_work = 1;
+	param.service_levels[0].quality_of_service = 2.2;
+	param.service_levels[0].service_level_number = 0;
+	param.service_levels[0].service_level_period = ms2ns(PERIOD);
+
+	param.service_levels[1].relative_work = 2;
+	param.service_levels[1].quality_of_service = 3;
+	param.service_levels[1].service_level_number = 1;
+	param.service_levels[1].service_level_period = ms2ns(PERIOD);
+
+	param.service_levels[2].relative_work = 2.1;
+	param.service_levels[2].quality_of_service = 4;
+	param.service_levels[2].service_level_number = 2;
+	param.service_levels[2].service_level_period = ms2ns(PERIOD);
+
+	param.service_levels[3].relative_work = 3;
+	param.service_levels[3].quality_of_service = 5;
+	param.service_levels[3].service_level_number = 3;
+	param.service_levels[3].service_level_period = ms2ns(PERIOD);
 
 	/*****
 	 * 1) Initialize real-time settings.
@@ -195,7 +218,9 @@ void* rt_thread(void *tcontext)
 int job(int id) 
 {
 	/* Do real-time calculation. */
-	printf("hello id:%d\n", id);
+	struct control_page* myControlPage = get_ctrl_page();
+	unsigned int myServiceLevel = myControlPage->service_level;
+	printf("Service Level %u of thread %d\n",myServiceLevel, id);
 	/* Don't exit. */
 	return 0;
 }
