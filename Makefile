@@ -220,7 +220,7 @@ obj-cycles = cycles.o
 
 obj-main = main.o whisper.o feedback.o
 
-obj-adaptive_task = adaptive_task.o
+obj-adaptive_task = adaptive_task.o whisper.o feedback.o
 
 obj-base_task = base_task.o
 
@@ -228,7 +228,7 @@ obj-base_mt_task = base_mt_task.o
 ldf-base_mt_task = -pthread
 
 
-obj-adap_mt_task = adap_mt_task.o
+obj-adap_mt_task = adap_mt_task.o whisper.o feedback.o
 ldf-adap_mt_task = -pthread
 
 

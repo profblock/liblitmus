@@ -19,17 +19,24 @@
 /* Include threading support. */
 #include <pthread.h>
 
+#include "feedback.h"
+#include "whisper.h"
+#include <math.h>
+
 /* Include the LITMUS^RT API.*/
 #include "litmus.h"
 
-#define PERIOD            10
+#define PERIOD            1000
 #define RELATIVE_DEADLINE 10
 #define EXEC_COST         10
+
+#define R_ARRAY_SIZE_1	  101
+#define R_ARRAY_SIZE_2	  103
 
 /* Let's create 10 threads in the example, 
  * for a total utilization of 1.
  */
-#define NUM_THREADS      50 
+#define NUM_THREADS      32 
 
 /* The information passed to each thread. Could be anything. */
 struct thread_context {
@@ -45,7 +52,7 @@ void* rt_thread(void *tcontext);
  * Returns 1 -> task should exit.
  *         0 -> task should continue.
  */
-int job(int id);
+int job(int id, micSpeakerStruct* ms, double rArray1[], double rArray2[]);
 
 
 /* Catch errors.
@@ -65,7 +72,10 @@ int job(int id);
  */
 int main(int argc, char** argv)
 {
+	//int j;
 	int i;
+	//int numberOfOperations;
+	//micSpeakerStruct* ms;
 	struct thread_context ctx[NUM_THREADS];
 	pthread_t             task[NUM_THREADS];
 
@@ -82,6 +92,22 @@ int main(int argc, char** argv)
 	 * 2) Work environment (e.g., global data structures, file data, etc.) would
 	 *    be setup here.
 	 */
+
+	//micSpeakerStruct* ms1;
+	//OccludingPointsStruct* ops;
+
+	//initWhisperRoom(3, 2, 8, 4, 1, 2000000, 800000, 1.2, 100000, 100);
+	initWhisperRoom(3, 2, 8, 4, 0, 250, 2000, 500, .1, 100, 10);
+
+	
+	addNoise(1, 10, 3);
+	addNoise(20, 30, 5);
+	//ms1 = constructSpeakerMicPairByNumber(2*8-1);
+/*	for(j = 0;j<4*8;j++){
+		 ms = constructSpeakerMicPairByNumber(j);
+	}*/
+	
+	//ops = (OccludingPointsStruct*)malloc(sizeof(OccludingPointsStruct));
 
 
 
@@ -122,9 +148,24 @@ int main(int argc, char** argv)
  */
 void* rt_thread(void *tcontext)
 {
-	int do_exit;
+	//int do_exit;
+	micSpeakerStruct* ms;
 	struct thread_context *ctx = (struct thread_context *) tcontext;
 	struct rt_task param;
+	double randomValues1[R_ARRAY_SIZE_1];
+	double randomValues2[R_ARRAY_SIZE_2];
+	int i;
+	int k;
+	
+	for (i = 0; i < R_ARRAY_SIZE_1 ; i++) {
+		randomValues1[i] = (rand()%5000)/5000.0;
+	}
+	
+	for (i = 0; i < R_ARRAY_SIZE_2 ; i++) {
+		randomValues2[i] = (rand()%5000)/2500.0-1;
+	}
+	
+	ms = constructSpeakerMicPairByNumber(ctx->id);
 
 	/* Set up task parameters */
 	init_rt_task_param(&param);
@@ -195,12 +236,12 @@ void* rt_thread(void *tcontext)
 	/*****
 	 * 3) Invoke real-time jobs.
 	 */
-	do {
+	for(k=0;k<240;k++){
 		/* Wait until the next job is released. */
 		sleep_next_period();
 		/* Invoke job. */
-		do_exit = job(ctx->id);		
-	} while (!do_exit);
+		job(ctx->id, ms, randomValues1, randomValues2);		
+	}// while (!do_exit);
 
 
 	
@@ -215,18 +256,43 @@ void* rt_thread(void *tcontext)
 
 
 
-int job(int id) 
+int job(int id, micSpeakerStruct* ms, double rArray1[], double rArray2[]) 
 {
 	/* Do real-time calculation. */
-	int i =0;
-	int total;
+	long int i =0;
+	int rIndex1 = 0;
+	int rIndex2 = 0;
+	int total=0;
+	int numberOfOperations;
 	//struct control_page* myControlPage = get_ctrl_page();
 	//unsigned int myServiceLevel = myControlPage->service_level;
 	//printf("Service Level %u of thread %d\n",myServiceLevel, id);
 	/* Don't exit. */
-	total =0;
-	for (i=0;i<10000;i++){
-		total+=i;	
+	
+	updatePosition(ms, 1);
+	//Increased the number of iterations 
+	//TODO: 2014- move increase into whisper
+	numberOfOperations = getNumberOfOperations(ms)*14000;
+
+
+	total = 0;
+	for (i=0;i<numberOfOperations;i++){
+		
+		if (rIndex1 >= R_ARRAY_SIZE_1 ){
+			rIndex1 = 0;
+		}
+		
+		if (rIndex2 >= R_ARRAY_SIZE_2){
+			rIndex2 = 0;
+		}
+		total += rArray1[rIndex1] * rArray2[rIndex2];
+		rIndex1++;
+		rIndex2++;
+//		printf("i %ld\n", i);
+	}
+	
+	if(total==RAND_MAX){
+		printf("Just here to make sure total isn't optimized away\n");
 	}
 	return 0;
 }
