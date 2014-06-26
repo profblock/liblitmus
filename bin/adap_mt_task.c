@@ -22,8 +22,8 @@
 /* Include the LITMUS^RT API.*/
 #include "litmus.h"
 
-#define PERIOD            100
-#define RELATIVE_DEADLINE 100
+#define PERIOD            10
+#define RELATIVE_DEADLINE 10
 #define EXEC_COST         10
 
 /* Let's create 10 threads in the example, 
@@ -218,9 +218,15 @@ void* rt_thread(void *tcontext)
 int job(int id) 
 {
 	/* Do real-time calculation. */
-	struct control_page* myControlPage = get_ctrl_page();
-	unsigned int myServiceLevel = myControlPage->service_level;
-	printf("Service Level %u of thread %d\n",myServiceLevel, id);
+	int i =0;
+	int total;
+	//struct control_page* myControlPage = get_ctrl_page();
+	//unsigned int myServiceLevel = myControlPage->service_level;
+	//printf("Service Level %u of thread %d\n",myServiceLevel, id);
 	/* Don't exit. */
+	total =0;
+	for (i=0;i<10000;i++){
+		total+=i;	
+	}
 	return 0;
 }

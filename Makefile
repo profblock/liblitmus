@@ -15,6 +15,8 @@ ARCH ?= ${host-arch}
 LITMUS_KERNEL ?= ../litmus-rt
 
 
+# ###############################
+
 # ##############################################################################
 # Internal configuration.
 
@@ -72,7 +74,7 @@ AR  := ${CROSS_COMPILE}${AR}
 # Targets
 
 all     = lib ${rt-apps}
-rt-apps = cycles adaptive_task base_task rt_launch rtspin release_ts measure_syscall \
+rt-apps = cycles main adaptive_task base_task rt_launch rtspin release_ts measure_syscall \
 	  base_mt_task adap_mt_task uncache runtests
 
 .PHONY: all lib clean dump-config TAGS tags cscope help doc
@@ -216,6 +218,8 @@ vpath %.c bin/
 
 obj-cycles = cycles.o
 
+obj-main = main.o whisper.o feedback.o
+
 obj-adaptive_task = adaptive_task.o
 
 obj-base_task = base_task.o
@@ -246,7 +250,7 @@ lib-measure_syscall = -lm
 
 .SECONDEXPANSION:
 ${rt-apps}: $${obj-$$@} liblitmus.a
-	$(CC) -o $@ $(LDFLAGS) ${ldf-$@} $(filter-out liblitmus.a,$+) $(LOADLIBS) $(LDLIBS) ${liblitmus-flags} ${lib-$@}
+	$(CC) -o $@ $(LDFLAGS) ${ldf-$@} $(filter-out liblitmus.a,$+) $(LOADLIBS) $(LDLIBS) ${liblitmus-flags} ${lib-$@} -lm
 
 # ##############################################################################
 # Dependency resolution.
