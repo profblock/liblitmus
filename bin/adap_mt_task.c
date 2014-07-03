@@ -21,7 +21,7 @@
 
 #include "feedback.h"
 #include "whisper.h"
-#include <math.h>
+#include <math.h> 
 
 /* Include the LITMUS^RT API.*/
 #include "litmus.h"
@@ -52,7 +52,7 @@ void* rt_thread(void *tcontext);
  * Returns 1 -> task should exit.
  *         0 -> task should continue.
  */
-int job(int id, micSpeakerStruct* ms, double rArray1[], double rArray2[]);
+int job(int id, struct rt_task param, micSpeakerStruct* ms,  double rArray1[], double rArray2[]);
 
 
 /* Catch errors.
@@ -186,7 +186,7 @@ void* rt_thread(void *tcontext)
 	printf("RT Thread %d active.\n", ctx->id);
 	
 	
-	
+	//The service level information is know by  the task and the system. 
 	param.service_levels =(struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
 	param.service_levels[0].relative_work = 1;
 	param.service_levels[0].quality_of_service = 2.2;
@@ -240,7 +240,7 @@ void* rt_thread(void *tcontext)
 		/* Wait until the next job is released. */
 		sleep_next_period();
 		/* Invoke job. */
-		job(ctx->id, ms, randomValues1, randomValues2);		
+		job(ctx->id, param, ms,randomValues1, randomValues2);		
 	}// while (!do_exit);
 
 
@@ -256,7 +256,7 @@ void* rt_thread(void *tcontext)
 
 
 
-int job(int id, micSpeakerStruct* ms, double rArray1[], double rArray2[]) 
+int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], double rArray2[]) 
 {
 	/* Do real-time calculation. */
 	long int i =0;
@@ -264,15 +264,33 @@ int job(int id, micSpeakerStruct* ms, double rArray1[], double rArray2[])
 	int rIndex2 = 0;
 	int total=0;
 	int numberOfOperations;
-	//struct control_page* myControlPage = get_ctrl_page();
-	//unsigned int myServiceLevel = myControlPage->service_level;
-	//printf("Service Level %u of thread %d\n",myServiceLevel, id);
+	int relativeWorkFactor = 1;
+	struct control_page* myControlPage = get_ctrl_page();
+	unsigned int myServiceLevel = myControlPage->service_level;
+	printf("Thread %d, Pointer %p\n",id, myControlPage);
+	printf("Service Level %u of thread %d\n",myServiceLevel, id);
+	if(myControlPage->service_level!=0){
+		printf("Something\n");
+	} else {
+		printf("Nothing\n");
+	}
+	//myControlPage->service_level+=id;
+	myServiceLevel = myControlPage->service_level;
+	printf("**Service Level %u of thread %d\n",myServiceLevel, id);
+	if ((myServiceLevel >=0) && (myServiceLevel < 3)) {
+		relativeWorkFactor = param.service_levels[myServiceLevel].relative_work;
+		printf("**Service Level %u, relative work %d, of thread %d\n",myServiceLevel,relativeWorkFactor, id);
+	} else {
+		printf("Error Service level %u  too high %d\n",myServiceLevel, id);
+	}
+	
 	/* Don't exit. */
 	
 	updatePosition(ms, 1);
 	//Increased the number of iterations 
 	//TODO: 2014- move increase into whisper
-	numberOfOperations = getNumberOfOperations(ms)*14000;
+	//numberOfOperations = getNumberOfOperations(ms)*14000;
+	numberOfOperations = getNumberOfOperations(ms)*relativeWorkFactor*1000;
 
 
 	total = 0;
