@@ -267,13 +267,7 @@ int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], d
 	int relativeWorkFactor = 1;
 	struct control_page* myControlPage = get_ctrl_page();
 	unsigned int myServiceLevel = myControlPage->service_level;
-	printf("Thread %d, Pointer %p\n",id, myControlPage);
-	printf("Service Level %u of thread %d\n",myServiceLevel, id);
-	if(myControlPage->service_level!=0){
-		printf("Something\n");
-	} else {
-		printf("Nothing\n");
-	}
+
 	//myControlPage->service_level+=id;
 	myServiceLevel = myControlPage->service_level;
 	printf("**Service Level %u of thread %d\n",myServiceLevel, id);
