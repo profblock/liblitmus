@@ -156,6 +156,7 @@ void* rt_thread(void *tcontext)
 	double randomValues2[R_ARRAY_SIZE_2];
 	int i;
 	int k;
+
 	
 	for (i = 0; i < R_ARRAY_SIZE_1 ; i++) {
 		randomValues1[i] = (rand()%5000)/5000.0;
