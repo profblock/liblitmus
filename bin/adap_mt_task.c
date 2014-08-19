@@ -26,7 +26,7 @@
 /* Include the LITMUS^RT API.*/
 #include "litmus.h"
 
-#define PERIOD            1000
+#define PERIOD            1024
 #define RELATIVE_DEADLINE 10
 #define EXEC_COST         10
 
@@ -78,6 +78,7 @@ int main(int argc, char** argv)
 	//micSpeakerStruct* ms;
 	struct thread_context ctx[NUM_THREADS];
 	pthread_t             task[NUM_THREADS];
+	printf("Starting\n");
 
 	/* The task is in background mode upon startup. */		
 
@@ -197,18 +198,24 @@ void* rt_thread(void *tcontext)
 	param.service_levels[1].relative_work = 2;
 	param.service_levels[1].quality_of_service = 3;
 	param.service_levels[1].service_level_number = 1;
+	//param.service_levels[1].service_level_period = ms2ns(PERIOD)/2;
 	param.service_levels[1].service_level_period = ms2ns(PERIOD);
 
 	param.service_levels[2].relative_work = 2.1;
 	param.service_levels[2].quality_of_service = 4;
 	param.service_levels[2].service_level_number = 2;
+	//param.service_levels[2].service_level_period = ms2ns(PERIOD)/4;
 	param.service_levels[2].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[3].relative_work = 3;
+	param.service_levels[3].relative_work = 2.2;
 	param.service_levels[3].quality_of_service = 5;
 	param.service_levels[3].service_level_number = 3;
+	//param.service_levels[3].service_level_period = ms2ns(PERIOD)/8;
 	param.service_levels[3].service_level_period = ms2ns(PERIOD);
 
+	printf("Service level 0 %llu\n", param.service_levels[0].service_level_period);
+	printf("Service level 1 %llu\n", param.service_levels[1].service_level_period);
+	printf("Service level 2 %llu\n", param.service_levels[2].service_level_period);
 	/*****
 	 * 1) Initialize real-time settings.
 	 */
@@ -271,8 +278,8 @@ int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], d
 
 	//myControlPage->service_level+=id;
 	myServiceLevel = myControlPage->service_level;
-	printf("**Service Level %u of thread %d\n",myServiceLevel, id);
-	if ((myServiceLevel >=0) && (myServiceLevel < 3)) {
+	printf("**Service Level %u of thread %d, period %llu\n",myServiceLevel, id,param.service_levels[myServiceLevel].service_level_period);
+	if ((myServiceLevel >=0) && (myServiceLevel <= 3)) {
 		relativeWorkFactor = param.service_levels[myServiceLevel].relative_work;
 		printf("**Service Level %u, relative work %d, of thread %d\n",myServiceLevel,relativeWorkFactor, id);
 	} else {
