@@ -38,6 +38,9 @@
  */
 #define NUM_THREADS      32 
 
+#define CLUSTERED 1
+#define NUM_CLUSTER 2
+
 /* The information passed to each thread. Could be anything. */
 struct thread_context {
 	int id;
@@ -157,6 +160,11 @@ void* rt_thread(void *tcontext)
 	double randomValues2[R_ARRAY_SIZE_2];
 	int i;
 	int k;
+	
+	//Added:
+	int numberClusters = 2;
+	int cluster = ctx->id%numberClusters; 
+	int ret;
 
 	
 	for (i = 0; i < R_ARRAY_SIZE_1 ; i++) {
@@ -170,6 +178,18 @@ void* rt_thread(void *tcontext)
 	ms = constructSpeakerMicPairByNumber(ctx->id);
 
 	/* Set up task parameters */
+	//added.....
+	//this works for tasks that have migration
+
+	if(CLUSTERED==1){	
+		ret = be_migrate_to_domain(cluster);
+		if (ret < 0){
+
+			printf("Couldn't migrate\n");
+		}
+	}
+	//......
+	
 	init_rt_task_param(&param);
 	param.exec_cost = ms2ns(EXEC_COST);
 	param.period = ms2ns(PERIOD);
@@ -191,31 +211,35 @@ void* rt_thread(void *tcontext)
 	//The service level information is know by  the task and the system. 
 	param.service_levels =(struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
 	param.service_levels[0].relative_work = 1;
-	param.service_levels[0].quality_of_service = 2.2;
+	param.service_levels[0].quality_of_service = 1;
 	param.service_levels[0].service_level_number = 0;
 	param.service_levels[0].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[1].relative_work = 2;
-	param.service_levels[1].quality_of_service = 3;
+	param.service_levels[1].relative_work = 4;
+	param.service_levels[1].quality_of_service = 4;
 	param.service_levels[1].service_level_number = 1;
-	//param.service_levels[1].service_level_period = ms2ns(PERIOD)/2;
 	param.service_levels[1].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[2].relative_work = 2.1;
-	param.service_levels[2].quality_of_service = 4;
+	param.service_levels[2].relative_work = 10;
+	param.service_levels[2].quality_of_service = 10;
 	param.service_levels[2].service_level_number = 2;
-	//param.service_levels[2].service_level_period = ms2ns(PERIOD)/4;
 	param.service_levels[2].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[3].relative_work = 2.2;
-	param.service_levels[3].quality_of_service = 5;
+	param.service_levels[3].relative_work = 10;
+	param.service_levels[3].quality_of_service = 10;
 	param.service_levels[3].service_level_number = 3;
-	//param.service_levels[3].service_level_period = ms2ns(PERIOD)/8;
 	param.service_levels[3].service_level_period = ms2ns(PERIOD);
 
 	printf("Service level 0 %llu\n", param.service_levels[0].service_level_period);
 	printf("Service level 1 %llu\n", param.service_levels[1].service_level_period);
 	printf("Service level 2 %llu\n", param.service_levels[2].service_level_period);
+	
+	//added.....
+	if(CLUSTERED==1){
+		param.cpu = domain_to_first_cpu(cluster);
+	}
+	//.....
+	
 	/*****
 	 * 1) Initialize real-time settings.
 	 */
@@ -244,7 +268,7 @@ void* rt_thread(void *tcontext)
 	/*****
 	 * 3) Invoke real-time jobs.
 	 */
-	for(k=0;k<240;k++){
+	for(k=0;k<120;k++){
 		/* Wait until the next job is released. */
 		sleep_next_period();
 		/* Invoke job. */
