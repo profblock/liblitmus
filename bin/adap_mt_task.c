@@ -180,11 +180,12 @@ void* rt_thread(void *tcontext)
 	/* Set up task parameters */
 	//added.....
 	//this works for tasks that have migration
-
+	//this works for tasks that have migration
+	// This and the other migrate_to_domain work beneath are necessary to get the system 
+	// working for clustered EDF
 	if(CLUSTERED==1){	
 		ret = be_migrate_to_domain(cluster);
 		if (ret < 0){
-
 			printf("Couldn't migrate\n");
 		}
 	}
