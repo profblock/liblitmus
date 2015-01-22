@@ -523,8 +523,8 @@ void defaultValues()
 	// that would have whatever alpha and beta values we choose. 
 
 	//For reference, we will measure "distance" above in Meters. So, we'll need to convert "units" to "meter"
-	WHISPER_ALPHA = 3; //Times (d+1), then squared
-	WHISPER_BETA = 2;  // Multiplied by above value
+	WHISPER_ALPHA = 4; //Times (d+1), then squared
+	WHISPER_BETA = 1.2;  // Multiplied by above value
 
 
 

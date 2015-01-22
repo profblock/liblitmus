@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> 
 
 /* Include gettid() */
 #include <sys/types.h>
@@ -26,7 +26,9 @@
 /* Include the LITMUS^RT API.*/
 #include "litmus.h"
 
+// TODO: Increased Period. Maybey that will solve my problem 
 #define PERIOD            1024
+//#define PERIOD            2048
 #define RELATIVE_DEADLINE 10
 #define EXEC_COST         10
 
@@ -221,8 +223,8 @@ void* rt_thread(void *tcontext)
 	param.service_levels[1].service_level_number = 1;
 	param.service_levels[1].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[2].relative_work = 10;
-	param.service_levels[2].quality_of_service = 10;
+	param.service_levels[2].relative_work = 8;
+	param.service_levels[2].quality_of_service = 8;
 	param.service_levels[2].service_level_number = 2;
 	param.service_levels[2].service_level_period = ms2ns(PERIOD);
 
