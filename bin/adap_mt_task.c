@@ -26,10 +26,12 @@
 /* Include the LITMUS^RT API.*/
 #include "litmus.h"
 
+#include <time.h>
+
 // TODO: Increased Period. Maybey that will solve my problem 
-#define PERIOD            1024
+#define PERIOD            40 // 40 gives us 25 ticks per second
 //#define PERIOD            2048
-#define RELATIVE_DEADLINE 10
+#define RELATIVE_DEADLINE PERIOD 
 #define EXEC_COST         10
 
 #define R_ARRAY_SIZE_1	  101
@@ -57,7 +59,7 @@ void* rt_thread(void *tcontext);
  * Returns 1 -> task should exit.
  *         0 -> task should continue.
  */
-int job(int id, struct rt_task param, micSpeakerStruct* ms,  double rArray1[], double rArray2[]);
+int job(int id, struct rt_task param, micSpeakerStruct* ms,  double rArray1[], double rArray2[], int ticks);
 
 
 /* Catch errors.
@@ -81,6 +83,7 @@ int main(int argc, char** argv)
 	int i;
 	//int numberOfOperations;
 	//micSpeakerStruct* ms;
+
 	struct thread_context ctx[NUM_THREADS];
 	pthread_t             task[NUM_THREADS];
 	printf("Starting\n");
@@ -103,11 +106,11 @@ int main(int argc, char** argv)
 	//OccludingPointsStruct* ops;
 
 	//initWhisperRoom(3, 2, 8, 4, 1, 2000000, 800000, 1.2, 100000, 100);
-	initWhisperRoom(4, 1.2, 8, 4, 0, 250, 2000, 500, .1, 100, 10);
+	initWhisperRoom(5, 1.2, 8, 4, 0, 250, 2000, 500, .1, 100, 25);
 
 	
-	addNoise(1, 10, 3);
-	addNoise(20, 30, 5);
+	//addNoise(1, 10, 3);
+	//addNoise(20, 30, 4);
 	//ms1 = constructSpeakerMicPairByNumber(2*8-1);
 /*	for(j = 0;j<4*8;j++){
 		 ms = constructSpeakerMicPairByNumber(j);
@@ -167,6 +170,13 @@ void* rt_thread(void *tcontext)
 	int numberClusters = 2;
 	int cluster = ctx->id%numberClusters; 
 	int ret;
+	struct timespec last_time;
+	struct timespec current_time;
+	int totalTicks;
+	int currentTicks;
+	double last_time_in_seconds;
+	double current_time_in_seconds;
+
 
 	
 	for (i = 0; i < R_ARRAY_SIZE_1 ; i++) {
@@ -212,30 +222,31 @@ void* rt_thread(void *tcontext)
 	
 	
 	//The service level information is know by  the task and the system. 
-	param.service_levels =(struct rt_service_level*)malloc(sizeof(struct rt_service_level)*4);
+	param.service_levels =(struct rt_service_level*)malloc(sizeof(struct rt_service_level)*5); 
 	param.service_levels[0].relative_work = 1;
 	param.service_levels[0].quality_of_service = 1;
 	param.service_levels[0].service_level_number = 0;
 	param.service_levels[0].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[1].relative_work = 4;
-	param.service_levels[1].quality_of_service = 4;
+	param.service_levels[1].relative_work = 5;
+	param.service_levels[1].quality_of_service = 5;
 	param.service_levels[1].service_level_number = 1;
 	param.service_levels[1].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[2].relative_work = 8;
-	param.service_levels[2].quality_of_service = 8;
+	param.service_levels[2].relative_work = 10;
+	param.service_levels[2].quality_of_service = 10;
 	param.service_levels[2].service_level_number = 2;
 	param.service_levels[2].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[3].relative_work = 10;
-	param.service_levels[3].quality_of_service = 10;
+	param.service_levels[3].relative_work = 15;
+	param.service_levels[3].quality_of_service = 15;
 	param.service_levels[3].service_level_number = 3;
 	param.service_levels[3].service_level_period = ms2ns(PERIOD);
 
 	printf("Service level 0 %llu\n", param.service_levels[0].service_level_period);
 	printf("Service level 1 %llu\n", param.service_levels[1].service_level_period);
 	printf("Service level 2 %llu\n", param.service_levels[2].service_level_period);
+	printf("Service level 3 %llu\n", param.service_levels[3].service_level_period);
 	
 	//added.....
 	if(CLUSTERED==1){
@@ -271,11 +282,32 @@ void* rt_thread(void *tcontext)
 	/*****
 	 * 3) Invoke real-time jobs.
 	 */
-	for(k=0;k<120;k++){
+	clock_gettime(CLOCK_MONOTONIC, &last_time);
+	last_time_in_seconds = ((last_time.tv_sec) + (last_time.tv_nsec)*0.000000001);
+	totalTicks = 0;
+	for(k=0;k<1200;k++){
 		/* Wait until the next job is released. */
 		sleep_next_period();
+		
+		
+		/* Get tick count */
+		clock_gettime(CLOCK_MONOTONIC, &current_time);
+		current_time_in_seconds = ((current_time.tv_sec) + (current_time.tv_nsec)*0.000000001);
+		currentTicks = (int)((current_time_in_seconds-last_time_in_seconds)*WHISPER_TICS_PER_SECOND)-totalTicks;
+		totalTicks = (int)((current_time_in_seconds-last_time_in_seconds)*WHISPER_TICS_PER_SECOND);
+		
 		/* Invoke job. */
-		job(ctx->id, param, ms,randomValues1, randomValues2);		
+		job(ctx->id, param, ms,randomValues1, randomValues2, currentTicks);
+		
+		//If we haven't made any progress since the last go around, then don't change the last
+		//time otherwise. we won't move anywhere
+// 		if (ticks !=0){
+// 			clock_gettime(CLOCK_MONOTONIC, &last_time);
+// 		}
+		//printf("Job Number %d, my id %d\n", k, ctx->id);
+		if (k%100==0){
+			printf("Difference in time %f, ticks %d\n", (current_time_in_seconds-last_time_in_seconds), currentTicks); 
+		}
 	}// while (!do_exit);
 
 
@@ -291,7 +323,7 @@ void* rt_thread(void *tcontext)
 
 
 
-int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], double rArray2[]) 
+int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], double rArray2[], int ticks) 
 {
 	/* Do real-time calculation. */
 	long int i =0;
@@ -305,21 +337,21 @@ int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], d
 
 	//myControlPage->service_level+=id;
 	myServiceLevel = myControlPage->service_level;
-	printf("**Service Level %u of thread %d, period %llu\n",myServiceLevel, id,param.service_levels[myServiceLevel].service_level_period);
+	//printf("**Service Level %u of thread %d, period %llu\n",myServiceLevel, id,param.service_levels[myServiceLevel].service_level_period);
 	if ((myServiceLevel >=0) && (myServiceLevel <= 3)) {
 		relativeWorkFactor = param.service_levels[myServiceLevel].relative_work;
-		printf("**Service Level %u, relative work %d, of thread %d\n",myServiceLevel,relativeWorkFactor, id);
+		//printf("**Service Level %u, relative work %d, of thread %d\n",myServiceLevel,relativeWorkFactor, id);
 	} else {
-		printf("Error Service level %u  too high %d\n",myServiceLevel, id);
+		//printf("Error Service level %u  too high %d\n",myServiceLevel, id);
 	}
 	
 	/* Don't exit. */
 	
-	updatePosition(ms, 1);
+	updatePosition(ms, ticks);
 	//Increased the number of iterations 
 	//TODO: 2014- move increase into whisper
 	//numberOfOperations = getNumberOfOperations(ms)*14000;
-	numberOfOperations = getNumberOfOperations(ms)*relativeWorkFactor*1000;
+	numberOfOperations = getNumberOfOperations(ms)*relativeWorkFactor*30;
 
 
 	total = 0;
