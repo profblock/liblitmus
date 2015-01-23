@@ -58,7 +58,6 @@ noiseStruct* END_LIST;
 double getCurRadians(micSpeakerStruct* ms);
 long int getXSpeakerPos(micSpeakerStruct* ms);
 long int getYSpeakerPos(micSpeakerStruct* ms);
-double getMicSpeakerDistanceInMeters(micSpeakerStruct* ms);
 void defaultValues();
 
 
@@ -217,10 +216,18 @@ void updatePosition(micSpeakerStruct* ms, long int numOfTicks){
 	double radiansTravled;
 	ms->totalTics+=numOfTicks;
 	
+	
 	unitsTraveledAroundArc = numOfTicks* ms->speedInUnitsPerTic;
 	fractionOfCircleTravled = ((double)unitsTraveledAroundArc)/(2* M_PI* ms->radius);
 	radiansTravled = 2*M_PI*fractionOfCircleTravled;
 	ms->curRadians+=radiansTravled;	
+	//printf("\t\t\tNumber of Ticks %ld, total:%ld, unitsTra:%ld, frac:%f\n", numOfTicks,ms->totalTics,unitsTraveledAroundArc,fractionOfCircleTravled) ;
+	
+// 	Testing code */
+// 	 unitsTraveledAroundArc = ms->totalTics* ms->speedInUnitsPerTic;
+// 	 fractionOfCircleTravled = ((double)unitsTraveledAroundArc)/(2* M_PI* ms->radius);
+// 	 radiansTravled = 2*M_PI*fractionOfCircleTravled +ms->initRadians;
+
 	if( (ms->noiseList!=0) && (ms->quiet==1) 
 		&& (ms->totalTics >= (ms->lastNoiseEnd + ms->noiseList->noiseStartAfterLastInTics)) )
 	{

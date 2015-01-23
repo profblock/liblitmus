@@ -106,7 +106,13 @@ int main(int argc, char** argv)
 	//OccludingPointsStruct* ops;
 
 	//initWhisperRoom(3, 2, 8, 4, 1, 2000000, 800000, 1.2, 100000, 100);
-	initWhisperRoom(5, 1.2, 8, 4, 0, 250, 2000, 500, .1, 100, 25);
+	// 1.3 is normal human walking speed 
+	// 1000 makes each whisper unit 1 mm
+	// 25 gives us 25 updates per second
+	//(double alpha, double beta, int numSpeakers, int numMic, int occluding, long int occludingSize,
+	//				long int side, long int radius, double speedInMetersPerSecond, long int unitsPerMeter, 
+	//				long int ticksPerSecond)
+	initWhisperRoom(6, 1.2, 8, 4, 0, 2500, 20000, 5000, 1.3, 1000, 25);
 
 	
 	//addNoise(1, 10, 3);
@@ -334,6 +340,7 @@ int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], d
 	int relativeWorkFactor = 1;
 	struct control_page* myControlPage = get_ctrl_page();
 	unsigned int myServiceLevel = myControlPage->service_level;
+//	double micDistance;
 
 	//myControlPage->service_level+=id;
 	myServiceLevel = myControlPage->service_level;
@@ -348,6 +355,11 @@ int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], d
 	/* Don't exit. */
 	
 	updatePosition(ms, ticks);
+//	micDistance = getMicSpeakerDistanceInMeters(ms);
+// 	if(id==0){
+// 		printf("For thread %d, the distance is %f\n", id,micDistance);
+// 		printf("\t\tFor thread %d, the total operations is %d\n", id, getNumberOfOperations(ms));
+// 	}
 	//Increased the number of iterations 
 	//TODO: 2014- move increase into whisper
 	//numberOfOperations = getNumberOfOperations(ms)*14000;

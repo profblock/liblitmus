@@ -110,6 +110,7 @@ int getNumberOfOperations(micSpeakerStruct* ms);
  */
 int addNoise(double startAfterSeconds, double durationInSeconds, double factor);
 
+double getMicSpeakerDistanceInMeters(micSpeakerStruct* ms);
 
 // These are no constants Constant because they might be changeable by the initWhisper method.
 
