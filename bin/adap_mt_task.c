@@ -29,10 +29,10 @@
 #include <time.h>
 
 // TODO: Increased Period. Maybey that will solve my problem 
-#define PERIOD            40 // 40 gives us 25 ticks per second
+#define PERIOD            10 // 40 gives us 25 ticks per second
 //#define PERIOD            2048
 #define RELATIVE_DEADLINE PERIOD 
-#define EXEC_COST         10
+#define EXEC_COST         2
 
 #define R_ARRAY_SIZE_1	  101
 #define R_ARRAY_SIZE_2	  103
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
 	//(double alpha, double beta, int numSpeakers, int numMic, int occluding, long int occludingSize,
 	//				long int side, long int radius, double speedInMetersPerSecond, long int unitsPerMeter, 
 	//				long int ticksPerSecond)
-	initWhisperRoom(6, 1.2, 8, 4, 0, 2500, 20000, 5000, 1.3, 1000, 25);
+	initWhisperRoom(5, 1.2, 8, 4, 0, 2500, 20000, 9000, 1.3, 1000, 25);
 
 	
 	//addNoise(1, 10, 3);
@@ -177,11 +177,16 @@ void* rt_thread(void *tcontext)
 	int cluster = ctx->id%numberClusters; 
 	int ret;
 	struct timespec last_time;
+	struct timespec after_job;
 	struct timespec current_time;
 	int totalTicks;
 	int currentTicks;
 	double last_time_in_seconds;
 	double current_time_in_seconds;
+	double after_job_time_in_seconds;
+	double theWeight; 
+	double totalWeight = 0;
+	double avgWeight = 0;
 
 
 	
@@ -244,8 +249,8 @@ void* rt_thread(void *tcontext)
 	param.service_levels[2].service_level_number = 2;
 	param.service_levels[2].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[3].relative_work = 15;
-	param.service_levels[3].quality_of_service = 15;
+	param.service_levels[3].relative_work = 20;
+	param.service_levels[3].quality_of_service = 20;
 	param.service_levels[3].service_level_number = 3;
 	param.service_levels[3].service_level_period = ms2ns(PERIOD);
 
@@ -291,7 +296,7 @@ void* rt_thread(void *tcontext)
 	clock_gettime(CLOCK_MONOTONIC, &last_time);
 	last_time_in_seconds = ((last_time.tv_sec) + (last_time.tv_nsec)*0.000000001);
 	totalTicks = 0;
-	for(k=0;k<1200;k++){
+	for(k=0;k<12000;k++){
 		/* Wait until the next job is released. */
 		sleep_next_period();
 		
@@ -304,7 +309,11 @@ void* rt_thread(void *tcontext)
 		
 		/* Invoke job. */
 		job(ctx->id, param, ms,randomValues1, randomValues2, currentTicks);
+		clock_gettime(CLOCK_MONOTONIC, &after_job);
 		
+		after_job_time_in_seconds = ((after_job.tv_sec) + (after_job.tv_nsec)*0.000000001);
+		theWeight = (after_job_time_in_seconds-current_time_in_seconds)/0.04;
+		totalWeight +=theWeight;
 		//If we haven't made any progress since the last go around, then don't change the last
 		//time otherwise. we won't move anywhere
 // 		if (ticks !=0){
@@ -312,8 +321,12 @@ void* rt_thread(void *tcontext)
 // 		}
 		//printf("Job Number %d, my id %d\n", k, ctx->id);
 		if (k%100==0){
-			printf("Difference in time %f, ticks %d\n", (current_time_in_seconds-last_time_in_seconds), currentTicks); 
-		}
+			avgWeight = totalWeight/k;
+
+			//printf("Job Time in seconds %f\n", (after_job_time_in_seconds-current_time_in_seconds)); 
+			//printf("Difference in time %f, ticks %d\n", (current_time_in_seconds-last_time_in_seconds), currentTicks); 
+			printf("Time %f, Thread %d,average weight is %f, currentWeight%f,\n",(current_time_in_seconds-last_time_in_seconds), ctx->id,avgWeight,theWeight ); 
+		} 
 	}// while (!do_exit);
 
 
@@ -363,7 +376,7 @@ int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], d
 	//Increased the number of iterations 
 	//TODO: 2014- move increase into whisper
 	//numberOfOperations = getNumberOfOperations(ms)*14000;
-	numberOfOperations = getNumberOfOperations(ms)*relativeWorkFactor*30;
+	numberOfOperations = getNumberOfOperations(ms)*relativeWorkFactor*7;
 
 
 	total = 0;
