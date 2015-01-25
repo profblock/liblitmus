@@ -40,7 +40,7 @@
 /* Let's create 10 threads in the example, 
  * for a total utilization of 1.
  */
-#define NUM_THREADS      32 
+#define NUM_THREADS      96 
 
 #define CLUSTERED 1
 #define NUM_CLUSTER 2
@@ -83,6 +83,8 @@ int main(int argc, char** argv)
 	int i;
 	//int numberOfOperations;
 	//micSpeakerStruct* ms;
+	int numberOfMics = 4;
+	int numberOfSpeakers = NUM_THREADS/numberOfMics;
 
 	struct thread_context ctx[NUM_THREADS];
 	pthread_t             task[NUM_THREADS];
@@ -112,7 +114,7 @@ int main(int argc, char** argv)
 	//(double alpha, double beta, int numSpeakers, int numMic, int occluding, long int occludingSize,
 	//				long int side, long int radius, double speedInMetersPerSecond, long int unitsPerMeter, 
 	//				long int ticksPerSecond)
-	initWhisperRoom(5, 1.2, 8, 4, 0, 2500, 20000, 9000, 1.3, 1000, 25);
+	initWhisperRoom(5, 1.2, numberOfSpeakers, numberOfMics, 0, 2500, 20000, 9000, 1.3, 1000, 25);
 
 	
 	//addNoise(1, 10, 3);
@@ -376,7 +378,7 @@ int job(int id, struct rt_task param,  micSpeakerStruct* ms, double rArray1[], d
 	//Increased the number of iterations 
 	//TODO: 2014- move increase into whisper
 	//numberOfOperations = getNumberOfOperations(ms)*14000;
-	numberOfOperations = getNumberOfOperations(ms)*relativeWorkFactor*7;
+	numberOfOperations = getNumberOfOperations(ms)*relativeWorkFactor*2;
 
 
 	total = 0;
