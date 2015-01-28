@@ -42,6 +42,7 @@
  */
 #define NUM_THREADS      96 
 
+//Change to 1 if clustered
 #define CLUSTERED 1
 #define NUM_CLUSTER 2
 
@@ -115,10 +116,11 @@ int main(int argc, char** argv)
 	//				long int side, long int radius, double speedInMetersPerSecond, long int unitsPerMeter, 
 	//				long int ticksPerSecond)
 	initWhisperRoom(5, 1.2, numberOfSpeakers, numberOfMics, 0, 2500, 20000, 9000, 1.3, 1000, 25);
+	//initWhisperRoom(1, 1.2, numberOfSpeakers, numberOfMics, 0, 2500, 20000, 9000, 1.3, 1000, 25);
 
 	
-	//addNoise(1, 10, 3);
-	//addNoise(20, 30, 4);
+	addNoise(20, 10, 1.1);
+	addNoise(40, 10, 1.5);
 	//ms1 = constructSpeakerMicPairByNumber(2*8-1);
 /*	for(j = 0;j<4*8;j++){
 		 ms = constructSpeakerMicPairByNumber(j);
@@ -175,7 +177,7 @@ void* rt_thread(void *tcontext)
 	int k;
 	
 	//Added:
-	int numberClusters = 2;
+	int numberClusters = NUM_CLUSTER;
 	int cluster = ctx->id%numberClusters; 
 	int ret;
 	struct timespec last_time;
@@ -209,7 +211,7 @@ void* rt_thread(void *tcontext)
 	// This and the other migrate_to_domain work beneath are necessary to get the system 
 	// working for clustered EDF
 	if(CLUSTERED==1){	
-		ret = be_migrate_to_domain(cluster);
+		ret = be_migrate_to_domain(cluster); 
 		if (ret < 0){
 			printf("Couldn't migrate\n");
 		}
@@ -236,24 +238,24 @@ void* rt_thread(void *tcontext)
 	
 	//The service level information is know by  the task and the system. 
 	param.service_levels =(struct rt_service_level*)malloc(sizeof(struct rt_service_level)*5); 
-	param.service_levels[0].relative_work = 1;
+	param.service_levels[0].relative_work = 1; 
 	param.service_levels[0].quality_of_service = 1;
 	param.service_levels[0].service_level_number = 0;
 	param.service_levels[0].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[1].relative_work = 5;
-	param.service_levels[1].quality_of_service = 5;
+	param.service_levels[1].relative_work = 2;
+	param.service_levels[1].quality_of_service = 2;
 	param.service_levels[1].service_level_number = 1;
 	param.service_levels[1].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[2].relative_work = 10;
-	param.service_levels[2].quality_of_service = 10;
+	param.service_levels[2].relative_work = 15;
+	param.service_levels[2].quality_of_service = 15;
 	param.service_levels[2].service_level_number = 2;
 	param.service_levels[2].service_level_period = ms2ns(PERIOD);
 
-	param.service_levels[3].relative_work = 20;
-	param.service_levels[3].quality_of_service = 20;
-	param.service_levels[3].service_level_number = 3;
+	param.service_levels[3].relative_work = 25;
+	param.service_levels[3].quality_of_service = 25;  
+	param.service_levels[3].service_level_number = 3; 
 	param.service_levels[3].service_level_period = ms2ns(PERIOD);
 
 	printf("Service level 0 %llu\n", param.service_levels[0].service_level_period);
@@ -298,7 +300,7 @@ void* rt_thread(void *tcontext)
 	clock_gettime(CLOCK_MONOTONIC, &last_time);
 	last_time_in_seconds = ((last_time.tv_sec) + (last_time.tv_nsec)*0.000000001);
 	totalTicks = 0;
-	for(k=0;k<12000;k++){
+	for(k=0;k<6000;k++){
 		/* Wait until the next job is released. */
 		sleep_next_period();
 		
