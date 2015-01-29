@@ -40,11 +40,12 @@
 /* Let's create 10 threads in the example, 
  * for a total utilization of 1.
  */
-#define NUM_THREADS      96 
-
+//#define NUM_THREADS      96 
+#define NUM_THREADS      96
+ 
 //Change to 1 if clustered
-#define CLUSTERED 1
-#define NUM_CLUSTER 2
+#define CLUSTERED 0
+#define NUM_CLUSTER 1  
 
 /* The information passed to each thread. Could be anything. */
 struct thread_context {
