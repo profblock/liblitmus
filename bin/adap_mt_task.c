@@ -44,8 +44,8 @@
 #define NUM_THREADS      96
  
 //Change to 1 if clustered
-#define CLUSTERED 0
-#define NUM_CLUSTER 1  
+#define CLUSTERED 1
+#define NUM_CLUSTER 2  
 
 /* The information passed to each thread. Could be anything. */
 struct thread_context {
